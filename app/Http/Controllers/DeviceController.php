@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Device;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class DeviceController extends Controller
 {
@@ -20,9 +21,22 @@ class DeviceController extends Controller
 
     public function add(Request $request){
 
-        $data = $request->validate([
+        $rules = array(
             'name' => ['required', 'min:3'],
             'member_id' => ['required', 'unique:devices,member_id']
+        );
+
+        $validator = Validator::make($request->all(), $rules);
+
+        if($validator->fails()){
+            return $validator->errors();
+        }
+
+        $data = $validator->validated();
+
+
+        return response()->json([
+            'data' => $data
         ]);
 
         Device::create([
@@ -40,10 +54,18 @@ class DeviceController extends Controller
 
         $device = Device::findOrFail($id);
 
-        $data = $request->validate([
+        $rules = array(
             'name' => ['required', 'min:3'],
             'member_id' => ['required']
-        ]);
+        );
+
+        $validator = Validator::make($request->all(), $rules);
+
+        if($validator->fails()){
+            return $validator->errors();
+        }
+
+        $data = $validator->validated();
 
         $device->update([
             'name' => $data['name'],
@@ -82,5 +104,27 @@ class DeviceController extends Controller
         Device::findOrFail($id)->delete();
 
         return ['success', 'Item Deleted Successfully'];
+    }
+
+    public function upload(Request $request){
+
+        $rules = [
+            'image' => ['required', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+
+        if($validator->fails()){
+            return $validator->errors();
+        }
+
+
+        $result = $request->file('image')->store('apiDocs');
+
+        $result = asset('storage/'. $result);
+
+        return response()->json([
+            'result' => $result
+        ], 201);
     }
 }
