@@ -119,7 +119,7 @@ class DeviceController extends Controller
         }
 
 
-        $result = $request->file('image')->store('apiDocs');
+        $result = $request->file('image')->storeAs('apiDocs', rand(100000, 999999) . '.' . $request->file('image')->getClientOriginalExtension());
 
         $result = asset('storage/'. $result);
 
